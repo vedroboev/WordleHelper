@@ -1,20 +1,13 @@
 import re
-import ctypes
-
-kernel32 = ctypes.windll.kernel32
-kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+from rich.console import Console
 
 yellow_letters = set()
+console = Console()
 
 words = []
 with open('wordle.txt', 'r') as file:
     for line in file:
         words.append(line.strip())
-
-# Colors for console output.
-OKGREEN = '\033[92m'
-WARNING = '\033[93m'
-ENDC = '\033[0m'
 
 # Sorts selected words by the number of yellow letters.
 def sorter(x):
@@ -24,6 +17,17 @@ def sorter(x):
         if i in x:
             count += 1
     return count
+
+
+# Format word into a rich-printable format according to letter colors.
+def color_word(word: str, letters: dict) -> str:
+    new_word = ""
+    for letter in word:
+        if color := letters.get(letter):
+            new_word += f"[{color}]{letter}[/{color}]"
+        else:
+            new_word += letter
+    return new_word
 
 
 while True:
@@ -63,6 +67,10 @@ while True:
             # Allowing only green letters on the spot.
             regex += "[" + green[i] + "]"
 
+    # TODO Temporar! Remake
+    letters = {letter: "green" for letter in green}
+    letters |= {letter: "yellow" for letter in yellow_letters}
+
     print(regex)
     rex = re.compile(regex)
     matches = list(filter(rex.match, words))
@@ -75,11 +83,6 @@ while True:
             print(
                 "\n-------------[{} YELLOW]-------------".format(sorter(word)))
             prev_count = sorter(word)
-        for letter in word:
-            if letter in green:
-                print(OKGREEN + letter + ENDC, end='')
-            elif letter in yellow_letters:
-                print(WARNING + letter + ENDC, end='')
-            else:
-                print(letter, end='')
-        print('')
+
+        console.print(color_word(word, letters))
+
