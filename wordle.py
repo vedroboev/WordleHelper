@@ -1,6 +1,7 @@
 import re
 from rich.console import Console
 
+# TODO switch all prints to console.print
 console = Console()
 
 words = []
@@ -9,30 +10,27 @@ with open("wordle.txt", "r") as file:
         words.append(line.strip())
 
 
-# Sorts selected words by the number of yellow letters.
-def sort_by_yellow_letters(word: str, yellow_letters: set):
-    count = 0
-    for i in yellow_letters:
-        if i in word:
-            count += 1
-    return count
-
-
-# Format word into a rich-printable format according to letter colors.
-def color_word(word: str, letters: dict) -> str:
+# TODO update python, add proper type annotation.
+# Formats word to be rich-printable, returns word + number of yellow letters.
+def color_word(word: str, letters: dict):
     new_word = ""
+    yellow_letters = 0
+
     for letter in word:
         if color := letters.get(letter):
             new_word += f"[{color}]{letter}[/{color}]"
+            if color == "yellow":
+                yellow_letters += 1
         else:
             new_word += letter
-    return new_word
+
+    return new_word, yellow_letters
 
 
 # TODO make a main method.
 # TODO reformulate instruction statements.
 while True:
-    print("Analysing word...")
+    print("\n\nAnalysing word...")
     print('To skip to next input step, you can input "."')
 
     # Dict used to store all letters with color.
@@ -47,11 +45,6 @@ while True:
             if letter != ".":
                 yellow[i].add(letter)
                 letters[letter] = "yellow"
-
-    # TODO can just use the keys even when green letters are added.
-    yellow_letter_set = set()
-    for letter in letters:
-        yellow_letter_set.add(letter)
 
     # Getting green letters as a string.
     print("Enter the green letters and their positions. Example: ..a.c")
@@ -71,7 +64,7 @@ while True:
     regex = ""
     for i in range(5):
         if len(yellow[i]) != 0 or len(excluded) != 0:
-            # Excludes words with yellow letter on this spot + excluded letters.
+            # Excludes words with yellow or excluded letter on this spot.
             regex += "(?![" + "".join(yellow[i]) + "".join(excluded) + "])"
         if green[i] == ".":
             # Allowing all letters if no information is given.
@@ -83,19 +76,17 @@ while True:
 
     print(regex)
 
-    # Optimise all the sorting here.
     matches = list(filter(rex.match, words))
-    matches.sort(key=lambda x: sort_by_yellow_letters(x, yellow_letter_set))
+    matches_by_letters = {i: set() for i in range(0, 6)}
 
     print("Found {} matches:".format(len(matches)))
-    prev_count = -1
-    for word in matches:
-        if sort_by_yellow_letters(word, yellow_letter_set) != prev_count:
-            print(
-                "\n-------------[{} YELLOW]-------------".format(
-                    sort_by_yellow_letters(word, yellow_letter_set)
-                )
-            )
-            prev_count = sort_by_yellow_letters(word, yellow_letter_set)
 
-        console.print(color_word(word, letters))
+    for match in matches:
+        match_colored, matched_letters = color_word(match, letters)
+        matches_by_letters[matched_letters].add(match_colored)
+
+    for letter_count, words in matches_by_letters.items():
+        if words:
+            console.print(f"[{letter_count} YELLOW]", style="red on yellow")
+            for word in words:
+                console.print(word)
