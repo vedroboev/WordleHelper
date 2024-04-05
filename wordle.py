@@ -1,11 +1,12 @@
 import re
 from rich.console import Console
 
+# TODO make it possible to work with both russian and english.
 # TODO switch all prints to console.print
 console = Console()
 
 words = []
-with open("wordle.txt", "r") as file:
+with open("wordle_ru.txt", "r") as file:
     for line in file:
         words.append(line.strip())
 
@@ -28,6 +29,7 @@ def color_word(word: str, letters: dict):
 
 
 # TODO make a main method.
+# TODO add a feature to find the most optimal first words.
 # TODO reformulate instruction statements.
 while True:
     print("\n\nAnalysing word...")
@@ -50,6 +52,7 @@ while True:
     print("Enter the green letters and their positions. Example: ..a.c")
 
     green = input()
+    # TODO fix when only "." is inputted/
     if len(green) != 5:
         green == "....."
 
@@ -68,7 +71,7 @@ while True:
             regex += "(?![" + "".join(yellow[i]) + "".join(excluded) + "])"
         if green[i] == ".":
             # Allowing all letters if no information is given.
-            regex += "[a-z]"
+            regex += "[а-я]"
         else:
             # Allowing only green letters on the spot.
             regex += "[" + green[i] + "]"
@@ -85,8 +88,9 @@ while True:
         match_colored, matched_letters = color_word(match, letters)
         matches_by_letters[matched_letters].add(match_colored)
 
-    for letter_count, words in matches_by_letters.items():
-        if words:
+    # TODO print / find less matches, only include ones with at least all yellow letters.
+    for letter_count, matched_words in matches_by_letters.items():
+        if matched_words:
             console.print(f"[{letter_count} YELLOW]", style="red on yellow")
-            for word in words:
+            for word in matched_words:
                 console.print(word)
