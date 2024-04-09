@@ -1,5 +1,6 @@
 import re
 from rich.console import Console
+from rich.prompt import Prompt
 
 
 def color_word(word: str, letters: dict) -> tuple[str, int]:
@@ -104,17 +105,22 @@ def run_helper(console: Console, words: list[str]):
 def main():
     """Runs script in a loop."""
 
-    # TODO make it possible to work with both russian and english.
     # TODO switch all prints to console.print
     console = Console()
 
-    # TODO add ability to switch between languages.
+    LANGUAGES = dict(ru="wordle_ru.txt", en="wordle.txt")
+    LANGUAGE_NAMES = dict(ru="Russian", en="English")
+
+    language = Prompt.ask("Select a language", choices=["ru", "en"], default="en")
+    console.print(f"[b yellow]{LANGUAGE_NAMES[language]}[/b yellow] language selected.")
+
     words = []
-    with open("wordle.txt", "r") as file:
+    with open(LANGUAGES[language], "r") as file:
         for line in file:
             words.append(line.strip())
 
     while True:
+        # TODO switch languages between iterations.
         run_helper(console=console, words=words)
 
 
