@@ -32,7 +32,6 @@ def color_word(word: str, letters: dict):
 # TODO update Python, add proper type annotations.
 def build_regex(green, yellow, excluded, lookahead = None) -> str:
     regex = lookahead if lookahead else ""
-
     excluded = "".join(excluded)
 
     for i in range(len(green)):
@@ -47,6 +46,14 @@ def build_regex(green, yellow, excluded, lookahead = None) -> str:
             regex += "[.]"
 
     return regex
+
+
+def build_yellow_letter_lookahead(letters) -> str:
+    lookahead = ""
+    for letter in letters:
+        if letters[letter] == "yellow":
+            lookahead += rf"(?=\w*[{letter}])"
+    return lookahead
 
 
 # TODO make a main method.
@@ -83,8 +90,8 @@ while True:
     print("Enter excluded letters without spaces (optional). Example: rhgsfj:")
     excluded = input()
 
-    # Forming regex. TODO move to separate function.
-    regex = build_regex(green, yellow, excluded)
+    lookahead = build_yellow_letter_lookahead(letters)
+    regex = build_regex(green, yellow, excluded, lookahead=lookahead)
     rex = re.compile(regex)
 
     matches = list(filter(rex.match, words))
@@ -96,7 +103,6 @@ while True:
         match_colored, matched_letters = color_word(match, letters)
         matches_by_letters[matched_letters].add(match_colored)
 
-    # TODO print / find less matches, only include ones with at least all yellow letters.
     for letter_count, matched_words in matches_by_letters.items():
         if matched_words:
             console.print(f"[{letter_count} YELLOW]", style="red on yellow")
