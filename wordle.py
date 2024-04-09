@@ -33,8 +33,7 @@ def build_regex(
         elif len(excluded) != 0:
             regex += f"[^{excluded}]"
         else:
-            regex += "[.]"
-
+            regex += "."
     return regex
 
 
@@ -78,7 +77,7 @@ def run_helper(console: Console, words: list[str]):
             letters[letter] = "green"
 
     print("Enter excluded letters without spaces (optional). Example: rhgsfj:")
-    excluded = input()
+    excluded = input().strip(". ")
 
     lookahead = build_yellow_letter_lookahead(letters)
     regex = build_regex(yellow, green, excluded, lookahead=lookahead)
