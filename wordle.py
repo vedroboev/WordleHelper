@@ -1,6 +1,7 @@
 import re
 from rich.console import Console
 
+
 # TODO make it possible to work with both russian and english.
 # TODO switch all prints to console.print
 console = Console()
@@ -12,9 +13,8 @@ with open("wordle_ru.txt", "r") as file:
         words.append(line.strip())
 
 
-# TODO update python, add proper type annotation.
-# Formats word to be rich-printable, returns word + number of yellow letters.
-def color_word(word: str, letters: dict):
+def color_word(word: str, letters: dict) -> tuple[str, int]:
+    """Format word to be rich-printable and count yellow letters"""
     new_word = ""
     yellow_letters = 0
 
@@ -29,16 +29,17 @@ def color_word(word: str, letters: dict):
     return new_word, yellow_letters
 
 
-# TODO update Python, add proper type annotations.
-def build_regex(green, yellow, excluded, lookahead = None) -> str:
+def build_regex(
+    yellow: list[set[str]], green: str, excluded: str, lookahead: str = None
+) -> str:
+    """Build a regex to search for a word based on known letters"""
     regex = lookahead if lookahead else ""
-    excluded = "".join(excluded)
 
+    # TODO check for intersections & duplicate letters.
     for i in range(len(green)):
         if green[i] != ".":
             regex += f"[{green[i]}]"
         elif len(yellow[i]) != 0:
-            # TODO what happens if yellow & excluded letters intersect?
             regex += f"[^{''.join(yellow[i])}{excluded}]"
         elif len(excluded) != 0:
             regex += f"[^{excluded}]"
@@ -48,7 +49,8 @@ def build_regex(green, yellow, excluded, lookahead = None) -> str:
     return regex
 
 
-def build_yellow_letter_lookahead(letters) -> str:
+def build_yellow_letter_lookahead(letters: dict[str, str]) -> str:
+    """Build a regex to ensure that all given letters are present in the word"""
     lookahead = ""
     for letter in letters:
         if letters[letter] == "yellow":
@@ -91,7 +93,7 @@ while True:
     excluded = input()
 
     lookahead = build_yellow_letter_lookahead(letters)
-    regex = build_regex(green, yellow, excluded, lookahead=lookahead)
+    regex = build_regex(yellow, green, excluded, lookahead=lookahead)
     rex = re.compile(regex)
 
     matches = list(filter(rex.match, words))
