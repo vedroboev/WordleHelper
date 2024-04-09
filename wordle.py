@@ -2,17 +2,6 @@ import re
 from rich.console import Console
 
 
-# TODO make it possible to work with both russian and english.
-# TODO switch all prints to console.print
-console = Console()
-
-# TODO do inside the main method.
-words = []
-with open("wordle_ru.txt", "r") as file:
-    for line in file:
-        words.append(line.strip())
-
-
 def color_word(word: str, letters: dict) -> tuple[str, int]:
     """Format word to be rich-printable and count yellow letters"""
     new_word = ""
@@ -58,11 +47,10 @@ def build_yellow_letter_lookahead(letters: dict[str, str]) -> str:
     return lookahead
 
 
-# TODO make a main method.
-# TODO add a feature to find the most optimal first words.
-# TODO reformulate instruction statements
-# TODO add command to exit program.
-while True:
+def run_helper(console: Console, words: list[str]):
+    """Main loop, takes user input and finds appropriate words"""
+
+    # TODO reformulate instruction statements
     print("\n\nAnalysing word...")
     print('To skip to next input step, you can input "."')
 
@@ -110,3 +98,26 @@ while True:
             console.print(f"[{letter_count} YELLOW]", style="red on yellow")
             for word in matched_words:
                 console.print(word)
+
+
+# TODO add a feature to find the most optimal first words.
+# TODO add command to exit program.
+def main():
+    """Runs script in a loop."""
+
+    # TODO make it possible to work with both russian and english.
+    # TODO switch all prints to console.print
+    console = Console()
+
+    # TODO add ability to switch between languages.
+    words = []
+    with open("wordle.txt", "r") as file:
+        for line in file:
+            words.append(line.strip())
+
+    while True:
+        run_helper(console=console, words=words)
+
+
+if __name__ == "__main__":
+    main()
