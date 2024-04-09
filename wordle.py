@@ -5,6 +5,7 @@ from rich.console import Console
 # TODO switch all prints to console.print
 console = Console()
 
+# TODO do inside the main method.
 words = []
 with open("wordle_ru.txt", "r") as file:
     for line in file:
@@ -28,9 +29,30 @@ def color_word(word: str, letters: dict):
     return new_word, yellow_letters
 
 
+# TODO update Python, add proper type annotations.
+def build_regex(green, yellow, excluded, lookahead = None) -> str:
+    regex = lookahead if lookahead else ""
+
+    excluded = "".join(excluded)
+
+    for i in range(len(green)):
+        if green[i] != ".":
+            regex += f"[{green[i]}]"
+        elif len(yellow[i]) != 0:
+            # TODO what happens if yellow & excluded letters intersect?
+            regex += f"[^{''.join(yellow[i])}{excluded}]"
+        elif len(excluded) != 0:
+            regex += f"[^{excluded}]"
+        else:
+            regex += "[.]"
+
+    return regex
+
+
 # TODO make a main method.
 # TODO add a feature to find the most optimal first words.
-# TODO reformulate instruction statements.
+# TODO reformulate instruction statements
+# TODO add command to exit program.
 while True:
     print("\n\nAnalysing word...")
     print('To skip to next input step, you can input "."')
@@ -41,7 +63,6 @@ while True:
     # Collecting yellow letters from all different guesses.
     yellow = [set() for _ in range(5)]
     print("Enter all the yellow letters and their positions. Example: yy.y.")
-
     while (word := input()) != ".":
         for i, letter in enumerate(word):
             if letter != ".":
@@ -52,9 +73,8 @@ while True:
     print("Enter the green letters and their positions. Example: ..a.c")
 
     green = input()
-    # TODO fix when only "." is inputted/
     if len(green) != 5:
-        green == "....."
+        green = "....."
 
     for letter in green:
         if letter != ".":
@@ -64,20 +84,8 @@ while True:
     excluded = input()
 
     # Forming regex. TODO move to separate function.
-    regex = ""
-    for i in range(5):
-        if len(yellow[i]) != 0 or len(excluded) != 0:
-            # Excludes words with yellow or excluded letter on this spot.
-            regex += "(?![" + "".join(yellow[i]) + "".join(excluded) + "])"
-        if green[i] == ".":
-            # Allowing all letters if no information is given.
-            regex += "[а-я]"
-        else:
-            # Allowing only green letters on the spot.
-            regex += "[" + green[i] + "]"
+    regex = build_regex(green, yellow, excluded)
     rex = re.compile(regex)
-
-    print(regex)
 
     matches = list(filter(rex.match, words))
     matches_by_letters = {i: set() for i in range(0, 6)}
