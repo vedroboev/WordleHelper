@@ -1,6 +1,6 @@
 import re
 from rich.console import Console
-from rich.prompt import Prompt
+from rich.prompt import Prompt, Confirm
 
 
 def color_word(word: str, letters: dict) -> tuple[str, int]:
@@ -50,34 +50,44 @@ def build_yellow_letter_lookahead(letters: dict[str, str]) -> str:
 def run_helper(console: Console, words: list[str]):
     """Main loop, takes user input and finds appropriate words"""
 
-    # TODO reformulate instruction statements
-    print("\n\nAnalysing word...")
-    print('To skip to next input step, you can input "."')
+    # TODO simplify prompts if user already ran a program.
+    console.rule("ANALYSING WORD")
+    console.print(
+        "You can press [red]Enter[/] or [red].[/] at each step to skip it.", end="\n\n"
+    )
 
     # Dict used to store all letters with color.
     letters = {}
 
+    console.print("Enter all the [yellow]yellow letters[/] at their positions")
+    console.print("Enter yellow letters in each guess [u]separately[/].")
+    console.print("Example: .[yellow]c[/].[yellow]a[/][yellow]r[/]")
+
     # Collecting yellow letters from all different guesses.
     yellow = [set() for _ in range(5)]
-    print("Enter all the yellow letters and their positions. Example: yy.y.")
-    while (word := input()) != ".":
+    while (word := input()) and word != ".":
         for i, letter in enumerate(word):
             if letter != ".":
                 yellow[i].add(letter)
                 letters[letter] = "yellow"
 
-    # Getting green letters as a string.
-    print("Enter the green letters and their positions. Example: ..a.c")
+    console.print("Enter [u]all[/] the [green]green letters[/] at their positions")
+    console.print("Example: [green]c[/].[green]a[/]..")
 
+    # Getting green letters as a string.
     green = input()
     if len(green) != 5:
         green = "....."
+    else:
+        console.print("")
 
     for letter in green:
         if letter != ".":
             letters[letter] = "green"
 
-    print("Enter excluded letters without spaces (optional). Example: rhgsfj:")
+    console.print("Enter [u]all[/] excluded letters without spaces (optional).")
+    console.print("Example: [white]othils[white]")
+
     excluded = input().strip(". ")
 
     lookahead = build_yellow_letter_lookahead(letters)
@@ -87,32 +97,33 @@ def run_helper(console: Console, words: list[str]):
     matches = list(filter(rex.match, words))
     matches_by_letters = {i: set() for i in range(0, 6)}
 
-    print("Found {} matches:".format(len(matches)))
+    console.rule(f"FOUND {len(matches)} MATCHES:")
 
     for match in matches:
         match_colored, matched_letters = color_word(match, letters)
         matches_by_letters[matched_letters].add(match_colored)
 
+    # TODO print in multiple columns instead of one big one.
     for letter_count, matched_words in matches_by_letters.items():
         if matched_words:
-            console.print(f"[{letter_count} YELLOW]", style="red on yellow")
+            console.print(f"[red on yellow][{letter_count} YELLOW][/]")
             for word in matched_words:
                 console.print(word)
 
 
 # TODO add a feature to find the most optimal first words.
-# TODO add command to exit program.
 def main():
     """Runs script in a loop."""
 
-    # TODO switch all prints to console.print
     console = Console()
 
     LANGUAGES = dict(ru="wordle_ru.txt", en="wordle.txt")
     LANGUAGE_NAMES = dict(ru="Russian", en="English")
 
     language = Prompt.ask("Select a language", choices=["ru", "en"], default="en")
-    console.print(f"[b yellow]{LANGUAGE_NAMES[language]}[/b yellow] language selected.")
+
+    console.clear()
+    console.print(f"[yellow bold]{LANGUAGE_NAMES[language]}[/] language selected.")
 
     words = []
     with open(LANGUAGES[language], "r") as file:
@@ -122,6 +133,11 @@ def main():
     while True:
         # TODO switch languages between iterations.
         run_helper(console=console, words=words)
+
+        if not Confirm.ask("Do you want to continue?"):
+            return
+
+        console.clear()
 
 
 if __name__ == "__main__":
